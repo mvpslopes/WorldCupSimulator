@@ -1,16 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getFlagImageUrl } from '../utils/flags';
 import { calculateTeamStatistics } from '../utils/statistics';
+import { getDetailedData } from '../utils/storage';
 import BracketView from './BracketView';
 
 const WorldCupDetails = ({ cupData, onClose }) => {
+  const [detailedData, setDetailedData] = useState(null);
+  
+  useEffect(() => {
+    // Se não tiver fullData, tenta buscar do armazenamento detalhado
+    if (!cupData?.fullData && cupData?.year) {
+      const detailed = getDetailedData(cupData.year);
+      if (detailed) {
+        setDetailedData(detailed);
+      }
+    }
+  }, [cupData]);
+  
   if (!cupData) {
     return null;
   }
 
+  // Usa dados detalhados se disponíveis, senão usa dados básicos
+  const fullData = cupData.fullData || detailedData?.fullData;
+  const qualifiersData = cupData.qualifiersData || detailedData?.qualifiersData;
+
   // Se não tiver dados completos (copas antigas), mostra mensagem
-  if (!cupData.fullData) {
+  if (!fullData) {
     return (
       <AnimatePresence>
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50" onClick={onClose}>
@@ -46,7 +63,7 @@ const WorldCupDetails = ({ cupData, onClose }) => {
     );
   }
 
-  const stats = calculateTeamStatistics(cupData.fullData);
+  const stats = calculateTeamStatistics(fullData);
   const [activeTab, setActiveTab] = useState('stats'); // stats, bracket
 
   return (
@@ -94,7 +111,7 @@ const WorldCupDetails = ({ cupData, onClose }) => {
             >
               🏆 Chave Eliminatória
             </button>
-            {cupData.qualifiersData && (
+            {qualifiersData && (
               <button
                 onClick={() => setActiveTab('qualifiers')}
                 className={`px-6 py-2 rounded-lg font-semibold transition-all ${
@@ -208,9 +225,9 @@ const WorldCupDetails = ({ cupData, onClose }) => {
             </div>
           )}
 
-          {activeTab === 'qualifiers' && cupData.qualifiersData && (
+          {activeTab === 'qualifiers' && qualifiersData && (
             <div className="p-6">
-              <QualifiersReport qualifiersData={cupData.qualifiersData} />
+              <QualifiersReport qualifiersData={qualifiersData} />
             </div>
           )}
         </motion.div>

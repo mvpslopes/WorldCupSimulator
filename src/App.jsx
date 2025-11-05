@@ -4,14 +4,16 @@ import SimulationScreen from './components/SimulationScreen';
 import ChampionScreen from './components/ChampionScreen';
 import WorldCupDashboard from './components/WorldCupDashboard';
 import QualifiersScreen from './components/QualifiersScreen';
+import BulkSimulationScreen from './components/BulkSimulationScreen';
 import { teams } from './teams';
-import { getHistory, saveHistory, getTitles, saveTitles, getCurrentYear, saveCurrentYear } from './utils/storage';
+import { getHistory, saveHistory, getTitles, saveTitles, getCurrentYear, saveCurrentYear, saveHistoryWithDetails } from './utils/storage';
 
 function App() {
   const [screen, setScreen] = useState('home');
   const [championData, setChampionData] = useState(null);
   const [qualifiedTeams, setQualifiedTeams] = useState(null);
   const [qualifiersData, setQualifiersData] = useState(null); // Dados das eliminatórias
+  const [bulkYears, setBulkYears] = useState(null); // Anos para simulação em massa
   const processingRef = useRef(false);
 
   const handleStartSimulation = () => {
@@ -25,7 +27,7 @@ function App() {
     setScreen('simulation');
   };
 
-  const handleSimulationComplete = (result) => {
+  const handleSimulationComplete = async (result) => {
     // Previne processamento duplicado
     if (processingRef.current) return;
     processingRef.current = true;
@@ -37,16 +39,26 @@ function App() {
     const yearExists = history.some(cup => cup.year === currentYear);
     
     if (!yearExists) {
-      // Salva no histórico com dados completos
+      // Salva no histórico (otimizado)
       history.push({
         year: currentYear,
         champion: result.champion,
         runnerUp: result.runnerUp,
         championGoals: result.championGoals,
-        fullData: result, // Salva dados completos para estatísticas
-        qualifiersData: qualifiersData // Salva dados das eliminatórias (do estado)
+        qualifiersData: qualifiersData ? { qualified: qualifiersData.qualified?.map(t => ({
+          name: t.name,
+          rating: t.rating,
+          confederation: t.confederation
+        })) } : null
       });
-      saveHistory(history);
+      await saveHistory(history);
+      
+      // Tenta salvar dados detalhados separadamente (opcional)
+      try {
+        await saveHistoryWithDetails(history, result, qualifiersData, currentYear);
+      } catch (error) {
+        // Falha silenciosamente
+      }
 
       // Atualiza títulos
       const titles = getTitles();
@@ -75,6 +87,17 @@ function App() {
     setChampionData(null);
     setQualifiedTeams(null);
     setQualifiersData(null); // Limpa dados das eliminatórias
+    setBulkYears(null); // Limpa anos de simulação em massa
+  };
+  
+  const handleStartBulkSimulation = (years) => {
+    setBulkYears(years);
+    setScreen('bulkSimulation');
+  };
+  
+  const handleBulkSimulationComplete = () => {
+    setBulkYears(null);
+    setScreen('home');
   };
 
   return (
@@ -83,6 +106,13 @@ function App() {
         <HomeScreen 
           onStartSimulation={handleStartSimulation}
           onViewDashboard={() => setScreen('dashboard')}
+          onStartBulkSimulation={handleStartBulkSimulation}
+        />
+      )}
+      {screen === 'bulkSimulation' && bulkYears && (
+        <BulkSimulationScreen
+          yearsToAdvance={bulkYears}
+          onComplete={handleBulkSimulationComplete}
         />
       )}
       {screen === 'dashboard' && (

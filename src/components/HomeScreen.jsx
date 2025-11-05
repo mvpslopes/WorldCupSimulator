@@ -8,8 +8,9 @@ import WorldCupDetails from './WorldCupDetails';
 import GlobalStats from './GlobalStats';
 import { calculateHistoricalRanking } from '../utils/ranking';
 import SettingsPanel from './SettingsPanel';
+import BulkSimulationModal from './BulkSimulationModal';
 
-const HomeScreen = ({ onStartSimulation, onViewDashboard }) => {
+const HomeScreen = ({ onStartSimulation, onViewDashboard, onStartBulkSimulation }) => {
   const history = getHistory();
   const titles = getTitles();
   const currentYear = getCurrentYear();
@@ -17,6 +18,7 @@ const HomeScreen = ({ onStartSimulation, onViewDashboard }) => {
   const [showSettings, setShowSettings] = useState(false);
   const [showGlobalStats, setShowGlobalStats] = useState(false);
   const [showRanking, setShowRanking] = useState(false);
+  const [showBulkModal, setShowBulkModal] = useState(false);
 
   // Função auxiliar para buscar a bandeira pelo nome
   const getFlagByName = (name) => {
@@ -99,7 +101,15 @@ const HomeScreen = ({ onStartSimulation, onViewDashboard }) => {
             onClick={onStartSimulation}
             className="btn-primary text-xl md:text-2xl px-8 md:px-12 py-4 md:py-5"
           >
-            ⚡ Avançar Tempo ({currentYear})
+            ⚡ Avançar 4 Anos ({currentYear})
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowBulkModal(true)}
+            className="btn-secondary text-lg md:text-xl"
+          >
+            🚀 Avançar Múltiplas Copas
           </motion.button>
           {history.length > 0 && (
             <>
@@ -421,6 +431,17 @@ const HomeScreen = ({ onStartSimulation, onViewDashboard }) => {
       {/* Modal de Configurações */}
       {showSettings && (
         <SettingsPanel onClose={() => setShowSettings(false)} />
+      )}
+      
+      {/* Modal de Simulação em Massa */}
+      {showBulkModal && (
+        <BulkSimulationModal
+          onClose={() => setShowBulkModal(false)}
+          onConfirm={(years) => {
+            setShowBulkModal(false);
+            onStartBulkSimulation(years);
+          }}
+        />
       )}
     </div>
   );
