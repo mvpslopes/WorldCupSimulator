@@ -23,30 +23,42 @@ const WorldCupDashboard = ({ onBack }) => {
   const champions = [...new Set(history.map(cup => cup.champion.name))].sort();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-gray-950 via-gray-900 to-black p-8 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 right-10 w-96 h-96 bg-yellow-500/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 left-10 w-72 h-72 bg-amber-500/5 rounded-full blur-3xl"></div>
+      </div>
+      
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-7xl mx-auto"
+        className="max-w-7xl mx-auto relative z-10"
       >
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-5xl font-bold text-yellow-400">
-            🏆 Dashboard de Copas
-          </h1>
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-5xl md:text-6xl font-bold text-gradient mb-2" style={{ textShadow: '0 0 30px rgba(234, 179, 8, 0.3)' }}>
+              🏆 Dashboard de Copas
+            </h1>
+            <p className="text-gray-300 text-lg">Explore todas as edições simuladas</p>
+          </div>
           {onBack && (
             <motion.button
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               onClick={onBack}
-              className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-all"
+              className="btn-secondary flex items-center gap-2"
             >
-              ← Voltar
+              <span>←</span>
+              <span>Voltar</span>
             </motion.button>
           )}
         </div>
-        <p className="text-center text-gray-400 mb-8">
-          Clique em uma edição para ver detalhes • Clique em duas para comparar • Botão direito para adicionar à comparação
-        </p>
+        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-8 text-center">
+          <p className="text-blue-300 text-sm md:text-base">
+            💡 Clique em uma edição para ver detalhes • Clique em duas para comparar • Botão direito para adicionar à comparação
+          </p>
+        </div>
 
         {/* Filtros e Comparação */}
         <div className="mb-6 flex flex-wrap gap-4 justify-center items-center">
@@ -110,7 +122,7 @@ const WorldCupDashboard = ({ onBack }) => {
             <p className="text-gray-400 text-xl">Nenhuma Copa encontrada com este filtro.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
             {filteredHistory.map((cup, index) => (
               <motion.div
                 key={cup.year}
@@ -133,10 +145,10 @@ const WorldCupDashboard = ({ onBack }) => {
                     setComparisonCups([...comparisonCups, cup]);
                   }
                 }}
-                className={`bg-gray-800 border rounded-lg p-6 cursor-pointer transition-all shadow-lg group ${
+                className={`card cursor-pointer group ${
                   comparisonCups.some(c => c.year === cup.year)
-                    ? 'border-yellow-400 bg-yellow-400/20'
-                    : 'border-gray-700 hover:border-yellow-400 hover:bg-gray-750 hover:shadow-yellow-400/20'
+                    ? 'border-2 border-yellow-400 bg-gradient-to-br from-yellow-500/20 via-yellow-500/10 to-gray-800/90'
+                    : ''
                 }`}
               >
                 {/* Ano */}
